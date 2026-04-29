@@ -2,13 +2,12 @@
 
 All the informations about project are in the project.md file
 
-**Based Repo**: https://github.com/sinaayyy/project_mlops
-
+**Based Repo**: https://github.com/lyaminedb1/project_mlops
 
 **Members**: [First Last 1] · [First Last 2]
-**Repo**: `https://github.com/<your-repo>`
+**Repo**: `https://github.com/lyaminedb1/project_mlops`
 
-![CI/CD](https://github.com/<your-repo>/actions/workflows/ci.yml/badge.svg)
+![CI/CD](https://github.com/lyaminedb1/project_mlops/actions/workflows/ci.yml/badge.svg)
 
 > **For the grader**: clone the repo, generate the drone database, start the stack, then follow the commands section by section. Criteria marked `[VISUAL]` are evaluated through the UI or the GitHub repository.
 
@@ -23,6 +22,7 @@ python generate_patrol_db.py
 ```
 
 Expected output:
+
 ```
 ✓ Mission simulated — drone_patrol.db updated
   XX new detections inserted
@@ -54,6 +54,7 @@ docker compose ps
 ```
 
 Expected output — all services `running`:
+
 ```
 NAME          STATUS    PORTS
 api           running   0.0.0.0:8000->8000/tcp
@@ -72,16 +73,17 @@ curl -s http://localhost:8000/models | python -m json.tool
 ```
 
 Expected output — 1 entry per loaded model (0.25 pt each):
+
 ```json
 [
-  {"name": "yolov8",       "version": "1", "registered_at": "..."},
-  {"name": "yolo26",       "version": "1", "registered_at": "..."},
-  {"name": "rtdetr",       "version": "1", "registered_at": "..."},
-  {"name": "rtdetrv2",     "version": "1", "registered_at": "..."},
-  {"name": "rfdetr",       "version": "1", "registered_at": "..."},
-  {"name": "dfine",        "version": "1", "registered_at": "..."},
-  {"name": "deim-dfine",   "version": "1", "registered_at": "..."},
-  {"name": "fusion-model", "version": "1", "registered_at": "..."}
+    { "name": "yolov8", "version": "1", "registered_at": "..." },
+    { "name": "yolo26", "version": "1", "registered_at": "..." },
+    { "name": "rtdetr", "version": "1", "registered_at": "..." },
+    { "name": "rtdetrv2", "version": "1", "registered_at": "..." },
+    { "name": "rfdetr", "version": "1", "registered_at": "..." },
+    { "name": "dfine", "version": "1", "registered_at": "..." },
+    { "name": "deim-dfine", "version": "1", "registered_at": "..." },
+    { "name": "fusion-model", "version": "1", "registered_at": "..." }
 ]
 ```
 
@@ -177,6 +179,7 @@ pytest api/tests/test_unit.py -v
 ```
 
 Expected output:
+
 ```
 api/tests/test_unit.py::test_model_loads          PASSED
 api/tests/test_unit.py::test_predict_valid_image  PASSED
@@ -190,6 +193,7 @@ pytest api/tests/test_integration.py -v
 ```
 
 Expected output:
+
 ```
 api/tests/test_integration.py::test_api_end_to_end PASSED
 ```
@@ -293,11 +297,11 @@ docker compose exec airflow airflow dags list-runs \
 ### Unit tests + integration test pass in pipeline `0.75 + 0.75 pt`
 
 ```bash
-gh run view --repo <your-repo> --log | grep -E "(test_unit|test_integration|PASSED|FAILED)"
+gh run view --repo sinaayyy/project_mlops --log | grep -E "(test_unit|test_integration|PASSED|FAILED)"
 # Expected: pytest steps successful
 ```
 
-`[VISUAL]` https://github.com/<your-repo>/actions — `pytest test_unit.py` and `pytest test_integration.py` steps in green
+`[VISUAL]` https://github.com/sinaayyy/project_mlops/actions — `pytest test_unit.py` and `pytest test_integration.py` steps in green
 
 ### Build + push Docker image to public registry `1 pt`
 
@@ -309,7 +313,7 @@ docker pull <registry>/<image>:latest
 ### Pipeline green + badge in README `0.5 pt`
 
 ```bash
-gh run list --repo <your-repo> --limit 1
+gh run list --repo sinaayyy/project_mlops --limit 1
 # Expected: conclusion=success on main branch
 ```
 
