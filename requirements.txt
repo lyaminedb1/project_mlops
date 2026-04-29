@@ -1,0 +1,45 @@
+# API
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# Validation
+pydantic>=2.7.0
+
+# ML - YOLO & RT-DETR (ultralytics)
+ultralytics>=8.2.0
+
+# ML - Transformer models (RT-DETRv2, D-FINE via Hugging Face)
+transformers>=4.40.0
+torch>=2.3.0
+torchvision>=0.18.0
+
+# ML - RF-DETR (Roboflow)
+rfdetr>=1.0.0
+
+# Model registry
+mlflow>=2.13.0
+
+# Web UI
+streamlit>=1.35.0
+folium>=0.16.0
+streamlit-folium>=0.20.0
+
+# HTTP client (Streamlit → API calls, integration tests)
+requests>=2.32.0
+httpx>=0.27.0
+
+# Observability
+prometheus-client>=0.20.0
+
+# ETL / Airflow (install separately in Airflow container)
+# apache-airflow>=2.9.0
+
+# Testing
+pytest>=8.2.0
+pytest-asyncio>=0.23.0
+
+# Utilities
+Pillow>=10.3.0
+numpy>=1.26.0
+python-dotenv>=1.0.0

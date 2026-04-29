@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Model weights (large files)
+*.pt
+*.pth
+*.onnx
+*.bin
+*.safetensors
+
+# Logs
+logs/*.jsonl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# MLflow artifacts
+mlruns/
+mlartifacts/
+
+# Airflow
+airflow.db
+airflow.cfg
+airflow-webserver.pid
