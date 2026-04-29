@@ -109,6 +109,7 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus_rules.yml:/etc/prometheus/rules/prometheus_rules.yml:ro
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -126,7 +127,7 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
     depends_on:
       - prometheus
     restart: unless-stopped

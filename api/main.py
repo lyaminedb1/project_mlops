@@ -7,12 +7,17 @@ Chapter 2: /predict, /history
 
 import io
 import os
+import json
 import random
 import sqlite3
 import datetime
 import logging
+import time
 from contextlib import contextmanager
 from functools import lru_cache
+
+from prometheus_client import Counter, Histogram, Gauge, REGISTRY, generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import Response
 
 import numpy as np
 import requests
@@ -28,6 +33,23 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Waste Detection API", version="2.0.0")
+
+# ── Prometheus metrics ──────────────────────────────────────────────────────────
+
+def _make_or_get(factory, name, doc, **kwargs):
+    try:
+        return factory(name, doc, **kwargs)
+    except ValueError:
+        return REGISTRY._names_to_collectors.get(name)
+
+ml_predictions_total    = _make_or_get(Counter,    "ml_predictions_total",          "Total predictions")
+ml_inference_latency    = _make_or_get(Histogram,  "ml_inference_latency_seconds",  "Inference latency",
+                                        buckets=(0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0))
+ml_predictions_by_model = _make_or_get(Counter,    "ml_predictions_by_model_total", "Per-model count",
+                                        labelnames=["model"])
+ml_validation_errors    = _make_or_get(Counter,    "ml_validation_errors_total",    "Validation errors")
+ml_last_confidence      = _make_or_get(Gauge,      "ml_last_prediction_confidence", "Last prediction confidence")
+
 
 # ── Database ────────────────────────────────────────────────────────────────────
 
@@ -176,7 +198,29 @@ def _run_inference(model_name: str, image_bytes: bytes) -> dict:
     return {"confiance": confiance, "class": "waste"}
 
 
+def _write_prediction_log(*, timestamp, source, latitude, longitude,
+                           confiance, model_name, latency_ms):
+    log_dir = os.path.dirname(LOG_PATH)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
+    entry = {
+        "timestamp": timestamp, "source": source, "latitude": latitude,
+        "longitude": longitude, "confiance": confiance,
+        "model_name": model_name, "latence_ms": latency_ms,
+    }
+    try:
+        with open(LOG_PATH, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry) + "\n")
+    except OSError as exc:
+        logger.warning("Could not write prediction log: %s", exc)
+
+
 # ── Endpoints ───────────────────────────────────────────────────────────────────
+
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
 
 @app.get("/health")
 def health_check():
@@ -219,22 +263,38 @@ async def predict(
 ):
     image_bytes = await file.read()
 
-    _validate_image(file.content_type, image_bytes)
-    _validate_coords(latitude, longitude)
-    _validate_model(model_name)
+    try:
+        _validate_image(file.content_type, image_bytes)
+        _validate_coords(latitude, longitude)
+        _validate_model(model_name)
+    except Exception:
+        ml_validation_errors.inc()
+        raise
 
+    t0 = time.perf_counter()
     inference = _run_inference(model_name, image_bytes)
+    latency_s = time.perf_counter() - t0
+    latency_ms = round(latency_s * 1000, 1)
+
     timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+
+    ml_predictions_total.inc()
+    ml_inference_latency.observe(latency_s)
+    ml_predictions_by_model.labels(model=model_name).inc()
+    ml_last_confidence.set(inference["confiance"])
 
     with get_db() as conn:
         conn.execute(
-            """
-            INSERT INTO app_detections (timestamp, latitude, longitude, confiance, model_name, source, drone_id)
-            VALUES (?, ?, ?, ?, ?, 'manual', NULL)
-            """,
+            "INSERT INTO app_detections (timestamp, latitude, longitude, confiance, model_name, source, drone_id)"
+            " VALUES (?, ?, ?, ?, ?, 'manual', NULL)",
             (timestamp, latitude, longitude, inference["confiance"], model_name),
         )
         conn.commit()
+
+    _write_prediction_log(
+        timestamp=timestamp, source="manual", latitude=latitude, longitude=longitude,
+        confiance=inference["confiance"], model_name=model_name, latency_ms=latency_ms,
+    )
 
     return {
         "confiance": inference["confiance"],

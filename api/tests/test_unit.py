@@ -128,3 +128,39 @@ def test_history_returns_list(client, jpeg_bytes, mock_registry):
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
     assert len(resp.json()) >= 1
+
+
+def test_metrics_endpoint_returns_prometheus_text(client):
+    """GET /metrics returns 200 with all required metric names."""
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    assert "ml_predictions_total" in resp.text
+    assert "ml_inference_latency_seconds" in resp.text
+    assert "ml_predictions_by_model_total" in resp.text
+    assert "ml_validation_errors_total" in resp.text
+
+
+def test_predict_writes_jsonl_log(client, jpeg_bytes, mock_registry, tmp_path):
+    """POST /predict appends a valid JSON line to LOG_PATH."""
+    import json as _json
+
+    log_file = tmp_path / "predictions.jsonl"
+    original = main.LOG_PATH
+    main.LOG_PATH = str(log_file)
+    try:
+        resp = client.post(
+            "/predict",
+            files={"file": ("photo.jpg", jpeg_bytes, "image/jpeg")},
+            data={"latitude": "48.8566", "longitude": "2.3522", "model_name": "waste-detector-yolov8"},
+        )
+        assert resp.status_code == 200
+        lines = log_file.read_text(encoding="utf-8").strip().splitlines()
+        assert len(lines) >= 1
+        entry = _json.loads(lines[-1])
+        assert "timestamp" in entry
+        assert "confiance" in entry
+        assert "latence_ms" in entry
+        assert entry["source"] == "manual"
+        assert entry["latitude"] == 48.8566
+    finally:
+        main.LOG_PATH = original

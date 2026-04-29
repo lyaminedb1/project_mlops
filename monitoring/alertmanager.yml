@@ -10,5 +10,9 @@ route:
 receivers:
   - name: "default"
 
-# Alert rules are defined in monitoring/prometheus_rules.yml
-# and referenced from prometheus.yml
+inhibit_rules:
+  - source_match:
+      severity: "critical"
+    target_match:
+      severity: "warning"
+    equal: ["alertname"]

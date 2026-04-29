@@ -1,0 +1,33 @@
+groups:
+  - name: waste_detection_alerts
+    interval: 15s
+    rules:
+
+      - alert: LowPredictionConfidence
+        expr: ml_last_prediction_confidence < 0.60
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low model confidence"
+          description: "Last prediction confidence is {{ $value | printf \"%.2f\" }}, below 0.60."
+
+      - alert: HighValidationErrorRate
+        expr: >
+          rate(ml_validation_errors_total[5m]) /
+          (rate(ml_predictions_total[5m]) + rate(ml_validation_errors_total[5m]) + 0.001) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Validation error rate > 5%"
+          description: "Error rate is {{ $value | humanizePercentage }} over 5 min."
+
+      - alert: ApiUnreachable
+        expr: up{job="waste-detection-api"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Waste Detection API unreachable"
+          description: "Prometheus cannot scrape api:8000 for >30s."
