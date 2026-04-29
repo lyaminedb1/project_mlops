@@ -95,6 +95,7 @@ services:
       - ./dags:/opt/airflow/dags
       - airflow_logs:/opt/airflow/logs
       - ./:/workspace   # access to drone_patrol.db at /workspace/drone_patrol.db
+      - ./data:/data    # shared with api — app_detections.db at /data/app_detections.db
     depends_on:
       postgres:
         condition: service_healthy
