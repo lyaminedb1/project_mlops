@@ -4,7 +4,7 @@ All the informations about project are in the project.md file
 
 **Based Repo**: https://github.com/lyaminedb1/project_mlops
 
-**Members**: [First Last 1] · [First Last 2]
+**Members**: DALI BRAHAM ABDELLAH ELYAMINE · 
 **Repo**: `https://github.com/lyaminedb1/project_mlops`
 
 ![CI/CD](https://github.com/lyaminedb1/project_mlops/actions/workflows/ci.yml/badge.svg)
@@ -16,7 +16,7 @@ All the informations about project are in the project.md file
 ## Setup
 
 ```bash
-git clone https://github.com/<your-repo>.git
+git clone https://github.com/lyaminedb1/project_mlops.git
 cd waste-detection-mlops
 python generate_patrol_db.py
 ```
